@@ -6,8 +6,8 @@ import Quiz from '../models/Quiz.js';
 export const getQuizzes = async (req, res, next) => {
     try {
         const quizzes = await Quiz.find({ 
-            user: req.user._id,
-            document: req.params.documentId
+            userId: req.user._id,
+            documentId: req.params.documentId
         })
         .populate('documentId', 'title fileName')
         .sort({ createdAt: -1 });
@@ -27,10 +27,10 @@ export const getQuizzes = async (req, res, next) => {
 // @access  Private
 export const getQuizById = async (req, res, next) => {
     try {
-        const quiz =  await Quiz.findOne({
+        const quiz = await Quiz.findOne({
             _id: req.params.id,
-            user: req.user._id
-        })
+            userId: req.user._id
+        });
 
         if (!quiz) {
             return res.status(404).json({
@@ -54,7 +54,7 @@ export const getQuizById = async (req, res, next) => {
 // @access  Private
 export const submitQuiz = async (req, res, next) => {
     try {
-        const { answers } = req.body;
+        const { answers, tabSwitches = 0, tabSwitchLogs = [] } = req.body;
 
         if (!answers || !Array.isArray(answers)) {
             return res.status(400).json({
@@ -66,7 +66,7 @@ export const submitQuiz = async (req, res, next) => {
 
         const quiz = await Quiz.findOne({
             _id: req.params.id,
-            user: req.user._id
+            userId: req.user._id
         });
 
         if (!quiz) {
@@ -77,7 +77,7 @@ export const submitQuiz = async (req, res, next) => {
             });
         }
 
-        if(quiz.completedAt) {
+        if (quiz.completedAt) {
             return res.status(400).json({
                 success: false,
                 error: 'Quiz already completed',
@@ -89,10 +89,10 @@ export const submitQuiz = async (req, res, next) => {
         let correctCount = 0;
         const userAnswers = [];
 
-        answers.forEach((answer, index) => {
+        answers.forEach((answer) => {
             const { questionIndex, selectedAnswer } = answer;
 
-            if(questionIndex < quiz.questions.length) {
+            if (questionIndex < quiz.questions.length) {
                 const question = quiz.questions[questionIndex];
                 const isCorrect = selectedAnswer === question.correctAnswer;
                 if (isCorrect) correctCount++;
@@ -105,12 +105,16 @@ export const submitQuiz = async (req, res, next) => {
             }
         });
 
-        // calculate score
+        // Calculate score
         const score = Math.round((correctCount / quiz.totalQuestions) * 100);
 
-        // Update quiz with user answers and score
+        // Update quiz
         quiz.userAnswers = userAnswers;
         quiz.score = score;
+        quiz.tabSwitches = tabSwitches;
+        if (tabSwitchLogs && tabSwitchLogs.length > 0) {
+            quiz.tabSwitchLogs = tabSwitchLogs;
+        }
         quiz.completedAt = new Date();
 
         await quiz.save();
@@ -122,6 +126,7 @@ export const submitQuiz = async (req, res, next) => {
                 score,
                 correctCount,
                 totalQuestions: quiz.totalQuestions,
+                tabSwitches: quiz.tabSwitches,
                 percentage: score,
                 userAnswers
             }
@@ -170,7 +175,8 @@ export const getQuizResults = async (req, res, next) => {
                 correctAnswer: question.correctAnswer,
                 selectedAnswer: userAnswer?.selectedAnswer || null,
                 isCorrect: userAnswer?.isCorrect || false,
-                explanation: question.explanation
+                explanation: question.explanation,
+                difficulty: question.difficulty
             };
         });
 
@@ -183,6 +189,8 @@ export const getQuizResults = async (req, res, next) => {
                     document: quiz.documentId,
                     score: quiz.score,
                     totalQuestions: quiz.totalQuestions,
+                    isProctored: quiz.isProctored,
+                    tabSwitches: quiz.tabSwitches || 0,
                     completedAt: quiz.completedAt
                 },
                 results: detailedResults

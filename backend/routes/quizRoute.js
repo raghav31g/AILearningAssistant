@@ -13,10 +13,12 @@ const router = express.Router();
 // All routes are protected
 router.use(protect);
 
-router.get('/:documentId', getQuizzes);
-router.get('/quiz/:id', getQuizById);
-router.post('/:id/submit', submitQuiz);
-router.get('/:id/results', getQuizResults);
-router.delete('/:id', deleteQuiz);
+// IMPORTANT: specific routes must come before dynamic /:documentId
+// to prevent Express from matching 'quiz' or 'results' as a documentId param
+router.get('/quiz/:id', getQuizById);          // GET /api/quizzes/quiz/:id
+router.get('/:id/results', getQuizResults);    // GET /api/quizzes/:id/results
+router.post('/:id/submit', submitQuiz);        // POST /api/quizzes/:id/submit
+router.delete('/:id', deleteQuiz);             // DELETE /api/quizzes/:id
+router.get('/:documentId', getQuizzes);        // GET /api/quizzes/:documentId  ← must be last
 
 export default router;

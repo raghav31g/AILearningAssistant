@@ -1,13 +1,13 @@
-import moongose from 'mongoose';
+import mongoose from 'mongoose';
 
-const chatHistorySchema = new moongose.Schema({
+const chatHistorySchema = new mongoose.Schema({
     userId: {
-        type: moongose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
     documentId: {
-        type: moongose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Document',
         required: true
     },
@@ -32,6 +32,6 @@ const chatHistorySchema = new moongose.Schema({
 
 chatHistorySchema.index({ userId: 1, documentId: 1 });
 
-const ChatHistory = moongose.model('ChatHistory', chatHistorySchema);
+const ChatHistory = mongoose.model('ChatHistory', chatHistorySchema);
 
 export default ChatHistory;

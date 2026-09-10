@@ -51,4 +51,19 @@ export const API_PATHS = {
   PROGRESS: {
     GET_DASHBOARD: "/api/progress/dashboard",
   },
+
+  ADMIN: {
+    GET_USERS: "/api/admin/users",
+    CREATE_USER: "/api/admin/users",
+    UPDATE_ROLE: (id) => `/api/admin/users/${id}/role`,
+    TOGGLE_ACTIVE: (id) => `/api/admin/users/${id}/toggle-active`,
+    GET_STATS: "/api/admin/stats",
+    GET_PROTECTED_MODE: "/api/admin/protected-mode",
+    TOGGLE_PROTECTED_MODE: "/api/admin/protected-mode",
+  },
+
+  TEACHER: {
+    GET_STUDENTS: "/api/teacher/students",
+    GET_STUDENT_PROGRESS: (id) => `/api/teacher/students/${id}/progress`,
+  },
 };

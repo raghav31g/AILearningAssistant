@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import User from '../models/user.js';
+import User from '../models/User.js';
 import { validationResult } from "express-validator";
 
 
@@ -15,7 +15,19 @@ const generateToken = (userId) => {
 //@access  Public
 export const register = async (req, res, next) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, role } = req.body;
+
+        // Prevent self-registration as administrator
+        if (role === 'administrator') {
+            return res.status(400).json({
+                success: false,
+                error: 'Administrator accounts cannot be self-registered. Please contact an existing administrator.',
+                statusCode: 400
+            });
+        }
+
+        const validRoles = ['student', 'teacher'];
+        const assignedRole = validRoles.includes(role) ? role : 'student';
 
         // check if user exists
         const UserExists = await User.findOne({ $or: [{ email }, { username }] });
@@ -32,7 +44,9 @@ export const register = async (req, res, next) => {
         const user = await User.create({
             username,
             email,
-            password
+            password,
+            role: assignedRole,
+            isActive: true
         });
 
         // generate token
@@ -45,6 +59,8 @@ export const register = async (req, res, next) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role,
+                isActive: user.isActive,
                 profileImage: user.profileimage,
             },
             token
@@ -81,6 +97,15 @@ export const login = async (req, res, next) => {
             });
         }
 
+        // Check if user is active
+        if (user.isActive === false) {
+            return res.status(403).json({
+                success: false,
+                error: 'Your account has been deactivated by an administrator.',
+                statusCode: 403
+            });
+        }
+
         // check for password 
 
         const isMatch = await user.matchPassword(password);
@@ -98,15 +123,16 @@ export const login = async (req, res, next) => {
 
         res.status(200).json({
             success: true,
-            message: 'Logged in successfully',
-            data: {
+            message: 'Login successful',
+            user: {
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role || 'student',
+                isActive: user.isActive !== false,
                 profileImage: user.profileimage,
             },
             token,
-            message: 'Login successfull'
         });
     }
     catch (error) {
@@ -127,6 +153,8 @@ export const getProfile = async (req, res, next) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role || 'student',
+                isActive: user.isActive !== false,
                 profileImage: user.profileimage,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt
@@ -159,6 +187,8 @@ export const updateProfile = async (req, res, next) => {
                 id: user._id,
                 username: user.username,
                 email: user.email,
+                role: user.role || 'student',
+                isActive: user.isActive !== false,
                 profileImage: user.profileimage,
             },
             message: 'Profile updated successfully'

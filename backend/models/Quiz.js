@@ -1,13 +1,13 @@
-import moongoose from 'mongoose';
+import mongoose from 'mongoose';
 
-const quizSchema = new moongoose.Schema({
+const quizSchema = new mongoose.Schema({
     userId: {
-        type: moongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true
     },
     documentId: {
-        type: moongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Document',
         required: true
     },
@@ -61,6 +61,18 @@ const quizSchema = new moongoose.Schema({
         type: Number,
         required: true
     },
+    isProctored: {
+        type: Boolean,
+        default: true
+    },
+    tabSwitches: {
+        type: Number,
+        default: 0
+    },
+    tabSwitchLogs: [{
+        timestamp: { type: Date, default: Date.now },
+        message: { type: String, default: 'Tab switch detected' }
+    }],
     completedAt: {
         type: Date,
         default: null
@@ -72,6 +84,6 @@ const quizSchema = new moongoose.Schema({
 // Index for faster queries
 quizSchema.index({ userId: 1, documentId: 1 });
 
-const Quiz = moongoose.model('Quiz', quizSchema);
+const Quiz = mongoose.model('Quiz', quizSchema);
 
 export default Quiz;

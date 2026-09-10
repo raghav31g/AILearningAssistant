@@ -121,7 +121,7 @@ export const getDocuments = async (req, res, next) => {
             },
             {
                 $addFields: {
-                    flashcardCount: { $size: '$flashcardSets' },
+                    flashcardCount: { $size: '$flashcards' },
                     quizCount: { $size: '$quizzes' }
                 }
             },

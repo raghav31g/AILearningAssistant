@@ -14,6 +14,8 @@ import flashcardRoute from './routes/flashcardRoute.js';
 import aiRoute from './routes/aiRoute.js';
 import quizRoute from './routes/quizRoute.js';
 import progressRoute from './routes/progressRoute.js';
+import adminRoute from './routes/adminRoute.js';
+import teacherRoute from './routes/teacherRoute.js';
 
 // ES6 module ___dirname alternative
 const __filename = fileURLToPath(import.meta.url);
@@ -44,10 +46,12 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/documents', documentRoutes);
-app.use('/api/flashcards', flashcardRoute)
-app.use('/api/ai', aiRoute)
-app.use('/api/quizzes', quizRoute)
-app.use('/api/progress', progressRoute)
+app.use('/api/flashcards', flashcardRoute);
+app.use('/api/ai', aiRoute);
+app.use('/api/quizzes', quizRoute);
+app.use('/api/progress', progressRoute);
+app.use('/api/admin', adminRoute);
+app.use('/api/teacher', teacherRoute);
 
 app.use(errorHandler); // Error handling middleware
 

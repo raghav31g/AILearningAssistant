@@ -26,6 +26,20 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: 'null' 
     },
+    role: {
+        type: String,
+        enum: ['student', 'teacher', 'administrator'],
+        default: 'student'
+    },
+    isActive: {
+        type: Boolean,
+        default: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now
@@ -35,9 +49,9 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password before saving
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function() {
     if (!this.isModified('password')) {
-        next();
+        return;
     }
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
