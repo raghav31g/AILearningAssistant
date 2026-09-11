@@ -30,14 +30,23 @@ connectDB();
 //Middleware to handle CORS (Cross-Origin Resource Sharing) requests
 app.use(
     cors({
-        origin: '*', // Allow requests from any origin
-        methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific HTTP methods
-        allowedHeaders: ['Content-Type', 'Authorization'], // Allow specific headers
-        credentials: true, // Allow cookies to be sent with requests
+        origin: process.env.CLIENT_URL ? [process.env.CLIENT_URL, 'http://localhost:5173'] : '*',
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
     }));
 
 app.use(express.json()); // Middleware to parse incoming JSON requests
 app.use(express.urlencoded({ extended: true })); // Middleware to parse URL-encoded data
+
+// Health check endpoint
+app.get('/', (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: 'AI Learning Assistant API is running',
+        environment: process.env.NODE_ENV || 'development'
+    });
+});
 
 // Serve static files from the 'public' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -56,8 +65,7 @@ app.use('/api/teacher', teacherRoute);
 app.use(errorHandler); // Error handling middleware
 
 // 404 error handler
-
-app.get((req, res) => {
+app.use((req, res) => {
     res.status(404).json({
         success: false,
         message: 'Route not found',
