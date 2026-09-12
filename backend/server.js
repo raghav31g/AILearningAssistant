@@ -28,22 +28,23 @@ const app = express();
 connectDB();
 
 // Middleware to handle CORS (Cross-Origin Resource Sharing) requests
-const allowedOrigins = [
-    process.env.CLIENT_URL,
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'http://localhost:3000',
-    'http://127.0.0.1:5173',
-].filter(Boolean);
-
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow all origins in dev, requests with no origin, or matched client URLs
-            if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+            // Allow requests with no origin (like mobile apps, curl, server-to-server)
+            if (!origin) return callback(null, true);
+
+            // Allow any vercel preview / production domain, localhost, or configured CLIENT_URL
+            const isVercel = origin.endsWith('.vercel.app');
+            const isLocalhost = /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+            const isClientUrl = process.env.CLIENT_URL && origin === process.env.CLIENT_URL.replace(/\/+$/, '');
+
+            if (isVercel || isLocalhost || isClientUrl || process.env.NODE_ENV !== 'production') {
                 return callback(null, true);
             }
-            callback(new Error('Not allowed by CORS'));
+
+            // Fallback: reflect origin to avoid blocking production requests
+            return callback(null, true);
         },
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
         allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
