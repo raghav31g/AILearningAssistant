@@ -37,11 +37,12 @@ const LoginPage = () => {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(
-        err.message || "Failed to login. Please check your credentials."
-      );
-
-      toast.error(err.message || "Failed to login.");
+      const errorMessage =
+        err.error ||
+        err.message ||
+        "Failed to login. Please check your credentials.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

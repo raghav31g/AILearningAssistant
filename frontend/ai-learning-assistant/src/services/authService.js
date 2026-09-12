@@ -1,6 +1,23 @@
 import axiosInstance from "../utils/axiosInstance";
 import { API_PATHS } from "../utils/apiPaths";
 
+const normalizeError = (error, defaultMsg = "An error occurred") => {
+  const errorData = error.response?.data;
+  const message =
+    errorData?.error ||
+    errorData?.message ||
+    (error.code === "ERR_NETWORK"
+      ? "Cannot connect to server. Please check your network and ensure the backend is running."
+      : error.message) ||
+    defaultMsg;
+  return {
+    ...errorData,
+    message,
+    error: message,
+    statusCode: error.response?.status || 500,
+  };
+};
+
 const login = async (email, password) => {
   try {
     const response = await axiosInstance.post(API_PATHS.AUTH.LOGIN, {
@@ -10,9 +27,7 @@ const login = async (email, password) => {
 
     return response.data;
   } catch (error) {
-    throw error.response?.data || {
-      message: "An unknown error occurred",
-    };
+    throw normalizeError(error, "Failed to login. Please check your credentials.");
   }
 };
 
@@ -27,9 +42,7 @@ const register = async (username, email, password, role = "student") => {
 
     return response.data;
   } catch (error) {
-    throw error.response?.data || {
-      message: "An unknown error occurred",
-    };
+    throw normalizeError(error, "Registration failed. Please try again.");
   }
 };
 
@@ -39,9 +52,7 @@ const getProfile = async () => {
 
     return response.data;
   } catch (error) {
-    throw error.response?.data || {
-      message: "An unknown error occurred",
-    };
+    throw normalizeError(error, "Failed to fetch profile");
   }
 };
 
@@ -54,9 +65,7 @@ const updateProfile = async (userData) => {
 
     return response.data;
   } catch (error) {
-    throw error.response?.data || {
-      message: "An unknown error occurred",
-    };
+    throw normalizeError(error, "Failed to update profile");
   }
 };
 
@@ -69,9 +78,7 @@ const changePassword = async (passwords) => {
 
     return response.data;
   } catch (error) {
-    throw error.response?.data || {
-      message: "An unknown error occurred",
-    };
+    throw normalizeError(error, "Failed to change password");
   }
 };
 
