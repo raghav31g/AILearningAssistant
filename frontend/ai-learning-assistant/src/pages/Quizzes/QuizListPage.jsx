@@ -9,7 +9,7 @@ import moment from 'moment';
 import {
   BrainCircuit, Trophy, Trash2, Loader2, ChevronRight,
   Clock, CheckCircle2, Circle, Plus, Sparkles, ArrowRight,
-  BarChart3, FileText, RefreshCw,
+  BarChart3, FileText, RefreshCw, AlertCircle, Lock,
 } from 'lucide-react';
 
 const ScoreBadge = ({ score, completed }) => {
@@ -36,6 +36,8 @@ const QuizListPage = () => {
   const [deleting, setDeleting]   = useState(null);
   const [generating, setGenerating] = useState(null);
   const [showGenModal, setShowGenModal] = useState(false);
+  const [assignedQuizzes, setAssignedQuizzes] = useState([]);
+  const [loadingAssigned, setLoadingAssigned] = useState(true);
 
   // Build full quiz list by fetching quizzes per document
   useEffect(() => {
@@ -46,7 +48,7 @@ const QuizListPage = () => {
         const readyDocs = (docsData || []).filter(d => d.status === 'ready');
         setDocs(readyDocs);
 
-        // Fetch quizzes for each document
+        // Fetch practice quizzes for each document
         const allQuizzes = [];
         await Promise.all(
           readyDocs.map(async (doc) => {
@@ -67,6 +69,19 @@ const QuizListPage = () => {
       }
     };
     fetchAll();
+
+    // Fetch teacher-assigned quizzes
+    const fetchAssigned = async () => {
+      try {
+        const res = await quizService.getAssignedQuizzes();
+        setAssignedQuizzes(res?.data || []);
+      } catch {
+        // silently fail — student may have none
+      } finally {
+        setLoadingAssigned(false);
+      }
+    };
+    fetchAssigned();
   }, []);
 
   const handleDelete = async (id, e) => {
@@ -300,6 +315,91 @@ const QuizListPage = () => {
               </div>
             );
           })}
+        </div>
+      )}
+      {/* ── ASSIGNED BY TEACHER SECTION ── */}
+      {!loadingAssigned && assignedQuizzes.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 px-3 py-1 bg-violet-100 border border-violet-200 rounded-full">
+              <AlertCircle size={12} className="text-violet-600" />
+              <span className="text-xs font-bold text-violet-700">Assigned by Teacher</span>
+            </div>
+            <span className="text-xs text-slate-400">{assignedQuizzes.length} graded quiz{assignedQuizzes.length !== 1 ? 'zes' : ''}</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {assignedQuizzes.map(quiz => {
+              const isCompleted = !!quiz.completedAt;
+              const score = quiz.score || 0;
+              const scoreColor = score >= 80 ? 'from-emerald-400 to-teal-500'
+                : score >= 60 ? 'from-amber-400 to-orange-500'
+                : 'from-red-400 to-rose-500';
+              return (
+                <div
+                  key={quiz._id}
+                  className="group bg-white rounded-2xl border border-violet-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5 flex flex-col gap-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${isCompleted ? scoreColor : 'from-violet-400 to-indigo-500'} flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform duration-200`}>
+                        <BrainCircuit size={18} className="text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-slate-800 text-sm leading-snug line-clamp-2">{quiz.title}</p>
+                        <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1">
+                          <span className="font-medium text-violet-500">By {quiz.createdBy?.username || 'Teacher'}</span>
+                        </p>
+                      </div>
+                    </div>
+                    {/* Lock icon — assigned quizzes can't be deleted */}
+                    <span className="p-1.5 rounded-xl text-violet-300 shrink-0">
+                      <Lock size={13} />
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1"><BarChart3 size={12} />{quiz.totalQuestions} questions</span>
+                    <span className="flex items-center gap-1"><Clock size={12} />{moment(quiz.createdAt).fromNow()}</span>
+                    <span className="ml-auto">
+                      <ScoreBadge score={score} completed={isCompleted} />
+                    </span>
+                  </div>
+
+                  {isCompleted && (
+                    <div>
+                      <div className="flex justify-between text-[10px] text-slate-400 mb-1.5">
+                        <span>Score</span><span className="font-semibold">{score}%</span>
+                      </div>
+                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full bg-gradient-to-r ${scoreColor} rounded-full`}
+                          style={{ width: `${score}%`, transition: 'width 1s ease' }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2 pt-1">
+                    {isCompleted ? (
+                      <Link
+                        to={`/quizzes/${quiz._id}/results`}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-xl hover:bg-emerald-100 transition-colors border border-emerald-200"
+                      >
+                        <Trophy size={12} />View Results
+                      </Link>
+                    ) : (
+                      <Link
+                        to={`/quizzes/${quiz._id}`}
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-xs font-semibold rounded-xl hover:from-violet-600 hover:to-indigo-600 transition-all shadow-md shadow-violet-500/25"
+                      >
+                        <BrainCircuit size={12} />Start Graded Quiz <ChevronRight size={12} />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

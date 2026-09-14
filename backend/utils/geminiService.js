@@ -34,7 +34,7 @@ ${text.substring(0, 15000)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       contents: prompt,
     });
 
@@ -107,7 +107,7 @@ ${text.substring(0, 15000)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       contents: prompt,
     });
 
@@ -180,7 +180,7 @@ ${text.substring(0, 20000)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       contents: prompt,
     });
 
@@ -216,7 +216,7 @@ Answer:`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       contents: prompt,
     });
 
@@ -245,7 +245,7 @@ ${context.substring(0, 10000)}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
+      model: 'gemini-3.5-flash-lite',
       contents: prompt,
     });
 

@@ -11,6 +11,10 @@ const quizSchema = new mongoose.Schema({
         ref: 'Document',
         required: true
     },
+    title: {
+        type: String,
+        default: ''
+    },
     questions: [{
         question: { 
             type: String, 
@@ -76,6 +80,24 @@ const quizSchema = new mongoose.Schema({
     completedAt: {
         type: Date,
         default: null
+    },
+    // ── Quiz type & assignment fields ──────────────────────────────────────
+    quizType: {
+        type: String,
+        enum: ['practice', 'assigned'],
+        default: 'practice'
+    },
+    // Teacher who created this quiz (set on assigned quizzes)
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    },
+    // On a student copy: points back to the teacher's template quiz
+    templateId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Quiz',
+        default: null
     }
 }, {
     timestamps: true
@@ -83,6 +105,7 @@ const quizSchema = new mongoose.Schema({
 
 // Index for faster queries
 quizSchema.index({ userId: 1, documentId: 1 });
+quizSchema.index({ templateId: 1 }); // fast lookup of all student copies for a template
 
 const Quiz = mongoose.model('Quiz', quizSchema);
 

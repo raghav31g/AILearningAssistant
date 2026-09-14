@@ -46,6 +46,7 @@ export const API_PATHS = {
       `/api/quizzes/${id}/results`,
     DELETE_QUIZ: (id) =>
       `/api/quizzes/${id}`,
+    GET_ASSIGNED: '/api/quizzes/assigned',
   },
 
   PROGRESS: {
@@ -63,7 +64,11 @@ export const API_PATHS = {
   },
 
   TEACHER: {
-    GET_STUDENTS: "/api/teacher/students",
+    GET_STUDENTS: '/api/teacher/students',
     GET_STUDENT_PROGRESS: (id) => `/api/teacher/students/${id}/progress`,
+    ASSIGN_QUIZ: '/api/teacher/quizzes/assign',
+    GET_ASSIGNED_QUIZZES: '/api/teacher/quizzes',
+    GET_ASSIGNED_QUIZ_RESULTS: (templateId) => `/api/teacher/quizzes/${templateId}/results`,
+    DOWNLOAD_QUIZ_RESULTS: (templateId) => `/api/teacher/quizzes/${templateId}/results/download`,
   },
 };

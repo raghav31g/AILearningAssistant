@@ -72,12 +72,22 @@ const deleteQuiz = async (quizId) => {
   }
 };
 
+const getAssignedQuizzes = async () => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.QUIZZES.GET_ASSIGNED);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch assigned quizzes' };
+  }
+};
+
 const quizService = {
   getQuizzesForDocument,
   getQuizById,
   submitQuiz,
   getQuizResults,
   deleteQuiz,
+  getAssignedQuizzes,
 };
 
 export default quizService;

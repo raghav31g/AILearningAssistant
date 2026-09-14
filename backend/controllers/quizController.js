@@ -1,4 +1,5 @@
 import Quiz from '../models/Quiz.js';
+import Document from '../models/Document.js';
 
 // @desc    Get all quizzes for a document
 // @route   GET /api/quizzes/:documentId
@@ -7,9 +8,34 @@ export const getQuizzes = async (req, res, next) => {
     try {
         const quizzes = await Quiz.find({ 
             userId: req.user._id,
-            documentId: req.params.documentId
+            documentId: req.params.documentId,
+            // Only return student's own practice quizzes, not teacher-assigned copies
+            $or: [{ quizType: 'practice' }, { quizType: { $exists: false } }]
         })
         .populate('documentId', 'title fileName')
+        .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            count: quizzes.length,
+            data: quizzes
+        });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// @desc    Get all assigned quiz copies for the logged-in student
+// @route   GET /api/quizzes/assigned
+// @access  Private
+export const getAssignedQuizzesForStudent = async (req, res, next) => {
+    try {
+        const quizzes = await Quiz.find({
+            userId: req.user._id,
+            quizType: 'assigned',
+            templateId: { $ne: null }   // only student copies, not teacher templates
+        })
+        .populate('createdBy', 'username')
         .sort({ createdAt: -1 });
 
         res.status(200).json({

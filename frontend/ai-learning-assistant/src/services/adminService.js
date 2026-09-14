@@ -79,7 +79,55 @@ const getStudentProgress = async (studentId) => {
     const response = await axiosInstance.get(API_PATHS.TEACHER.GET_STUDENT_PROGRESS(studentId));
     return response.data;
   } catch (error) {
-    throw error.response?.data || { message: "Failed to fetch student progress" };
+    throw error.response?.data || { message: 'Failed to fetch student progress' };
+  }
+};
+
+const assignQuiz = async (data) => {
+  try {
+    const response = await axiosInstance.post(API_PATHS.TEACHER.ASSIGN_QUIZ, data);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to assign quiz' };
+  }
+};
+
+const getAssignedQuizzes = async () => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.TEACHER.GET_ASSIGNED_QUIZZES);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch assigned quizzes' };
+  }
+};
+
+const getAssignedQuizResults = async (templateId) => {
+  try {
+    const response = await axiosInstance.get(API_PATHS.TEACHER.GET_ASSIGNED_QUIZ_RESULTS(templateId));
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to fetch quiz results' };
+  }
+};
+
+const downloadQuizResults = async (templateId, quizTitle) => {
+  try {
+    const response = await axiosInstance.get(
+      API_PATHS.TEACHER.DOWNLOAD_QUIZ_RESULTS(templateId),
+      { responseType: 'blob' }
+    );
+    // Trigger browser download
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = url;
+    const safeTitle = (quizTitle || 'quiz_results').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.setAttribute('download', `${safeTitle}_marks.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    throw error.response?.data || { message: 'Failed to download CSV' };
   }
 };
 
@@ -93,6 +141,10 @@ const adminService = {
   toggleProtectedMode,
   getStudents,
   getStudentProgress,
+  assignQuiz,
+  getAssignedQuizzes,
+  getAssignedQuizResults,
+  downloadQuizResults,
 };
 
 export default adminService;
